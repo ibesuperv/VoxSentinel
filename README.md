@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="./taalk-buddy/public/vox-icon.svg" alt="VoxSentinel Logo" width="120" height="120" />
+</div>
+
 # VoxSentinel
 ### Identity-Secured Conversational Intelligence
 
