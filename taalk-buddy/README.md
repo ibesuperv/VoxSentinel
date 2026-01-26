@@ -68,7 +68,7 @@ The biometric visualizers use `requestAnimationFrame` with **Canvas API** instea
 
 ```bash
 # Clone the repository
-git clone https://github.com/voxsentinel/frontend.git
+git clone https://github.com/ibesuperv/VoxSentinel.git
 
 # Install with strict peer dependency resolution
 npm ci
