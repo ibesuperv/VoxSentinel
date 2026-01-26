@@ -2,7 +2,7 @@
   <img src="./taalk-buddy/public/vox-icon.svg" alt="VoxSentinel Logo" width="120" height="120" />
 </div>
 
-# VoxSentinel
+<h1 align="center">VoxSentinel</h1>
 ### Identity-Secured Conversational Intelligence
 
 ![Architecture](https://img.shields.io/badge/architecture-Microservices-orange)
