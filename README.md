@@ -3,6 +3,7 @@
 </div>
 
 <h1 align="center">VoxSentinel</h1>
+
 ### Identity-Secured Conversational Intelligence
 
 ![Architecture](https://img.shields.io/badge/architecture-Microservices-orange)
