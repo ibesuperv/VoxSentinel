@@ -1,0 +1,290 @@
+
+# --------------------------------------------------
+# OLD VERSION (COMMENTED OUT AS REQUESTED)
+# --------------------------------------------------
+# @app.websocket("/ws/conversation")
+# async def ws_conversation(ws: WebSocket):
+#     await ws.accept()
+#     print("[WS] Conversation Connected")
+#
+#     if not os.path.exists(PROFILE_PATH):
+#         await ws.close()
+#         return
+#
+#     recognizer = EagleRecognizer()
+#     stt_engine = RealtimeSTT()
+#
+#     vad = webrtcvad.Vad(2)  # balanced, low latency
+#
+#     vad_buffer = np.zeros(0, dtype=np.int16)     # 480 samples
+#     eagle_buffer = np.zeros(0, dtype=np.int16)   # 512 samples
+#
+#     speech_frames = []
+#
+#     is_recording = False
+#     grace = 0
+#     max_confidence = 0.0
+#
+#     VAD_FRAME_SAMPLES = 480
+#     EAGLE_FRAME_SAMPLES = recognizer.frame_length  # 512
+#
+#     try:
+#         while True:
+#             msg = await ws.receive()
+#
+#             if msg["type"] == "websocket.disconnect":
+#                 break
+#
+#             if "text" in msg:
+#                 continue
+#
+#             data = msg.get("bytes")
+#             if not data:
+#                 continue
+#
+#             pcm_f32 = np.frombuffer(data, dtype=np.float32)
+#             pcm_i16 = (pcm_f32 * 32767).astype(np.int16)
+#
+#             vad_buffer = np.concatenate([vad_buffer, pcm_i16])
+#             eagle_buffer = np.concatenate([eagle_buffer, pcm_i16])
+#
+#             # -----------------------
+#             # PROCESS EAGLE (512)
+#             # -----------------------
+#             confidence = 0.0
+#             while len(eagle_buffer) >= EAGLE_FRAME_SAMPLES:
+#                 eagle_frame = eagle_buffer[:EAGLE_FRAME_SAMPLES]
+#                 eagle_buffer = eagle_buffer[EAGLE_FRAME_SAMPLES:]
+#
+#                 _, score = recognizer.process_frame(eagle_frame)
+#                 confidence = float(score)
+#                 max_confidence = max(max_confidence, confidence)
+#
+#             # -----------------------
+#             # PROCESS VAD (480)
+#             # -----------------------
+#             while len(vad_buffer) >= VAD_FRAME_SAMPLES:
+#                 vad_frame = vad_buffer[:VAD_FRAME_SAMPLES]
+#                 vad_buffer = vad_buffer[VAD_FRAME_SAMPLES:]
+#
+#                 is_speech = vad.is_speech(
+#                     vad_frame.tobytes(), SAMPLE_RATE
+#                 )
+#
+#                 await ws.send_json({
+#                     "type": "status",
+#                     "speaker": (
+#                         "registered_user"
+#                         if confidence >= VERIFY_THRESHOLD
+#                         else "unregistered_user"
+#                     ),
+#                     "confidence": round(confidence, 3),
+#                 })
+#
+#                 # -----------------------
+#                 # SPEECH START
+#                 # -----------------------
+#                 if not is_recording and is_speech:
+#                     is_recording = True
+#                     grace = GRACE_PERIOD_FRAMES
+#                     speech_frames = [vad_frame]
+#                     continue
+#
+#                 # -----------------------
+#                 # SPEECH CONTINUE
+#                 # -----------------------
+#                 if is_recording:
+#                     speech_frames.append(vad_frame)
+#
+#                     if is_speech:
+#                         grace = GRACE_PERIOD_FRAMES
+#                     else:
+#                         grace -= 1
+#
+#                     # -----------------------
+#                     # SPEECH END
+#                     # -----------------------
+#                     if grace <= 0:
+#                         is_recording = False
+#
+#                         audio = np.concatenate(speech_frames)
+#                         speech_frames = []
+#
+#                         duration = len(audio) / SAMPLE_RATE
+#                         if duration < MIN_TRANSCRIPTION_LENGTH_SEC:
+#                             max_confidence = 0.0
+#                             continue
+#
+#                         final_speaker = (
+#                             "registered_user"
+#                             if max_confidence >= VERIFY_THRESHOLD
+#                             else "unregistered_user"
+#                         )
+#
+#                         loop = asyncio.get_running_loop()
+#                         text = await loop.run_in_executor(
+#                             executor, stt_engine.transcribe, audio
+#                         )
+#
+#                         if text:
+#                             print(
+#                                 f"[TRANSCRIPT] {final_speaker} "
+#                                 f"({max_confidence:.2f}): {text}"
+#                             )
+#
+#                             await ws.send_json({
+#                                 "type": "transcription",
+#                                 "speaker": final_speaker,
+#                                 "confidence": round(max_confidence, 3),
+#                                 "text": text,
+#                             })
+#
+#                         max_confidence = 0.0
+#
+#     except WebSocketDisconnect:
+#         print("[WS] Conversation closed")
+#
+#     finally:
+#         recognizer.delete()
+#         print("[WS] Conversation session ended")
+
+
+
+
+
+# @app.websocket("/ws/conversation")
+# async def ws_conversation(ws: WebSocket):
+#     await ws.accept()
+#     print("[WS] Conversation Connected (Keyword-Based Struggle Detection)")
+
+#     if not os.path.exists(PROFILE_PATH):
+#         await ws.close()
+#         return
+
+#     recognizer = EagleRecognizer()
+#     stt_engine = RealtimeSTT()
+
+#     buffer = np.zeros(0, dtype=np.int16)
+#     speech_frames = []
+
+#     is_recording = False
+#     grace = 0
+#     max_confidence = 0.0
+
+#     try:
+#         while True:
+#             msg = await ws.receive()
+
+#             if msg["type"] == "websocket.disconnect":
+#                 break
+
+#             # heartbeat
+#             if "text" in msg:
+#                 continue
+
+#             data = msg.get("bytes")
+#             if not data:
+#                 continue
+
+#             pcm_f32 = np.frombuffer(data, dtype=np.float32)
+#             pcm_i16 = (pcm_f32 * 32767).astype(np.int16)
+#             buffer = np.concatenate([buffer, pcm_i16])
+
+#             # -----------------------
+#             # FRAME LOOP (EAGLE)
+#             # -----------------------
+#             while len(buffer) >= recognizer.frame_length:
+#                 frame = buffer[:recognizer.frame_length]
+#                 buffer = buffer[recognizer.frame_length:]
+
+#                 _, score = recognizer.process_frame(frame)
+#                 confidence = float(score)
+#                 max_confidence = max(max_confidence, confidence)
+
+#                 await ws.send_json({
+#                     "type": "status",
+#                     "speaker": "registered_user" if confidence >= VERIFY_THRESHOLD else "unregistered_user",
+#                     "confidence": round(confidence, 3),
+#                 })
+
+#                 # -----------------------
+#                 # RECORDING LOGIC
+#                 # -----------------------
+#                 if confidence >= 0 and not is_recording:
+#                     is_recording = True
+#                     grace = GRACE_PERIOD_FRAMES
+#                     speech_frames = [frame]
+#                     continue
+
+#                 if is_recording:
+#                     speech_frames.append(frame)
+
+#                     if confidence >= VERIFY_THRESHOLD:
+#                         grace = GRACE_PERIOD_FRAMES
+#                     else:
+#                         grace -= 1
+
+#                     if grace <= 0:
+#                         is_recording = False
+
+#                         audio = np.concatenate(speech_frames)
+#                         speech_frames = []
+
+#                         duration = len(audio) / SAMPLE_RATE
+#                         if duration < MIN_TRANSCRIPTION_LENGTH_SEC:
+#                             max_confidence = 0.0
+#                             continue
+
+#                         final_speaker = (
+#                             "registered_user"
+#                             if max_confidence >= VERIFY_THRESHOLD
+#                             else "unregistered_user"
+#                         )
+
+#                         loop = asyncio.get_running_loop()
+#                         text = await loop.run_in_executor(
+#                             executor, stt_engine.transcribe, audio
+#                         )
+
+#                         if text:
+#                             print(f"[TRANSCRIPT] {final_speaker} ({max_confidence:.2f}): {text}")
+
+#                             # ===============================
+#                             # KEYWORD-BASED STRUGGLE DETECTION
+#                             # ===============================
+#                             if final_speaker == "registered_user":
+#                                 normalized = text.lower()
+
+#                                 HESITATION_KEYWORDS = {
+#                                     "uh", "um", "umm", "hmm", "ha", "ah",
+#                                     "i", "i i", "i uh", "i um",
+#                                     "i think", "maybe", "like", "you know"
+#                                 }
+
+#                                 struggle_count = 0
+#                                 for kw in HESITATION_KEYWORDS:
+#                                     if kw in normalized:
+#                                         struggle_count += normalized.count(kw)
+
+#                                 if struggle_count >= 3:
+#                                     print(
+#                                         "[BEHAVIOR] Registered user is struggling to speak "
+#                                         f"(hesitation_count={struggle_count})"
+#                                     )
+
+#                             await ws.send_json({
+#                                 "type": "transcription",
+#                                 "speaker": final_speaker,
+#                                 "confidence": round(max_confidence, 3),
+#                                 "text": text,
+#                             })
+
+#                         max_confidence = 0.0
+
+#     except WebSocketDisconnect:
+#         print("[WS] Conversation closed")
+
+#     finally:
+#         recognizer.delete()
+#         print("[WS] Conversation session ended")
+

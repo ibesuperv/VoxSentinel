@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  # 🧠 VoxSentinel Backend API
+  voxsentinel:
+    build: .
+    container_name: voxsentinel_core
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data # Persist vector DB & user profiles
+    env_file:
+      - .env # Automatically injects PICOVOICE_ACCESS_KEY and others
+    environment:
+      - OLLAMA_URL=http://host.docker.internal:11434 # Override for Docker networking
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Enable host networking
+    restart: always
+    networks:
+      - cloud_mesh
+  # 🔍 Vector Database Viewer (Optional - for demo purpose)
+  # Keeping it lightweight for now, but in a real cloud project 
+  # we would split ChromaDB into its own service here.
+
+networks:
+  cloud_mesh:
+    driver: bridge
