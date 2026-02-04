@@ -1,6 +1,15 @@
 # config.py
-import os 
-ACCESS_KEY = "PsXQmfArx7PbWLNC2pk48F6xDOcC6WGaHsbZODzLUqAoi7ye7THXIw=="
+
+import os
+from dotenv import load_dotenv
+
+
+load_dotenv() 
+_ACCESS_KEY = os.getenv("PICOVOICE_ACCESS_KEY")
+if _ACCESS_KEY is None:
+    raise RuntimeError("PICOVOICE_ACCESS_KEY not set in environment")
+
+ACCESS_KEY: str = _ACCESS_KEY
 
 
 DATA_DIR = "data"
