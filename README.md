@@ -4,71 +4,92 @@
 
 <h1 align="center">VoxSentinel</h1>
 
-### Identity-Secured Conversational Intelligence
+<p align="center">
+  <strong>Voice-Verified Intelligence for the Introverted Speaker</strong>
+</p>
 
-![Architecture](https://img.shields.io/badge/architecture-Microservices-orange)
-![Tech Stack](https://img.shields.io/badge/stack-React%20%7C%20FastAPI%20%7C%20PyTorch-blue)
-![Realtime](https://img.shields.io/badge/latency-%3C50ms-success)
-![Biometrics](https://img.shields.io/badge/security-Voice%20Print%20Auth-red)
+<p align="center">
+  <img src="https://img.shields.io/badge/latency-%3C50ms-success" alt="Realtime" />
+  <img src="https://img.shields.io/badge/security-Voice%20Identity-red" alt="Security" />
+  <img src="https://img.shields.io/badge/capability-Real--time%20Coaching-blue" alt="Feature" />
+</p>
 
-> **"Bridging the gap between real-time signal processing and large language models."**
+---
 
-**VoxSentinel** is an enterprise-grade biometric security platform that authenticates users via unique vocal signatures while providing real-time, adaptive linguistic coaching. It was engineered to solve the challenge of **secure communication in untrusted environments**.
+## 🎯 Problem Statement – VoxSentinel
+
+Many introverted individuals face significant difficulty during spoken conversations. Although they often know what they want to say, they struggle to express their thoughts verbally due to hesitation, lack of confidence, or fear of interruption. This problem becomes more serious in real-world social conversations, where multiple people are involved and real-time responses are required.
+
+### Limitations of Existing Systems:
+*   **No Speaker Identity Control**: Most systems respond to any nearby voice and cannot identify the intended user, leading to privacy issues, incorrect personalization, and irrelevant responses.
+*   **Lack of Real-Time Conversational Support**: Current tools are either offline or designed for simple speech-to-text; they do not provide real-time assistance during live, dynamic conversations.
+*   **No Behavior-Aware Coaching**: Existing applications do not analyze speech behavior (such as pauses or hesitation patterns) to determine when a user actually needs help.
+*   **Unsafe Memory Handling**: Storing conversation data without verifying identity risks privacy and undermines user trust.
+
+---
+
+## ✅ Our Solution Approach – VoxSentinel
+
+VoxSentinel is a voice-verified, cloud-based conversational coaching system designed to assist introverted users in improving their spoken English through two intelligent operating modes.
+
+### 1. 🛡️ Voice-Verified AI Practice Mode
+**Objective**: To help users improve spoken English by practicing conversations with AI in a safe and personalized environment.
+
+*   **Voice Registration**: The user enrolls their voice once to create a secure, personal profile.
+*   **Continuous Verification**: Every audio frame is verified during live streaming; the system only listens and responds if the speaker matches the registered voice.
+*   **Trusted Processing**: Only verified speech is processed and stored in memory, building a uniquely personalized AI experience over time.
+
+### 2. 👥 Real-World Monitoring & Coaching Mode
+**Objective**: To assist the registered user during real conversations with other people, without interrupting natural flow.
+
+*   **Selective Attention**: The system classifies speakers into "Registered User" or "Guest." Guest speech is used for context but is never stored or coached.
+*   **Hesitation Detection**: The system analyzes the registered user’s speech for long pauses or patterns indicating they may be struggling to find their words.
+*   **Conditional Coaching**: If the user is struggling, the AI generates a single, confident sentence suggestion to help them move forward. If the user is speaking fluently, the system remains silent to maintain natural flow.
+
+---
+
+## ⚡ Technical Capabilities
+
+*   **Identity-Secured Processing**: Ensures the system only acts on authorized voice signals.
+*   **Dual-Channel Intelligence**:
+    *   **Private Practice**: High-security, low-latency AI interaction.
+    *   **Live Monitoring**: Multi-speaker selective transcription and classification.
+*   **Adaptive Memory**: Conversational memory that is exclusive to the verified user, ensuring high privacy and contextual accuracy.
+*   **Behavioral Support**: Real-time behavioral analysis to provide help only when the user genuinely needs it.
 
 ---
 
 ## 🏛️ System Modules
 
-The architecture is decoupled into two high-performance microservices. Click below to explore the engineering deep-dives for each stack.
+VoxSentinel is built as a high-performance decoupled architecture. Explore the detailed engineering for each module:
 
 ### [🖥️ Frontend Terminal (taalk-buddy)](./taalk-buddy/README.md)
 *   **The Interface**: An edge-ready biometric terminal.
-*   **Engineering Highlights**: `AudioWorklet` for non-blocking stream processing, `WebSockets` for binary transfer, and `OffscreenCanvas` for 60fps frequency visualization.
+*   **Key Tech**: Audio streaming (`AudioWorklet`), binary transfer (`WebSockets`), and real-time visualization (`Canvas API`).
 *   [**View Frontend Architecture →**](./taalk-buddy/README.md)
 
 ### [🧠 Neural Engine (backend2)](./backend2/README.md)
 *   **The Brain**: A scalable inference cluster.
-*   **Engineering Highlights**: Asynchronous Event Loop (`asyncio`), GPU-accelerated Speaker Verification (`Eagle`), and Retrieval-Augmented Generation (`RAG`) with Vector Memory.
+*   **Key Tech**: Asynchronous Event Loop (`asyncio`), biometric verification, and personalized voice-aware memory.
 *   [**View Backend Architecture →**](./backend2/README.md)
 
 ---
 
-## ⚡ Core Capabilities
-
-*   **🛡️ Zero-Trust Audio**: Every frame of audio is verified against a biometric enrollment vector before processing.
-*   **🚀 Event-Driven**: Fully asynchronous pipeline handles multiple concurrent streams with negligible blocking.
-*   **🧠 Context-Aware**: Integrates Vector Search (ChromaDB) to provide coaching based on long-term user history.
-*   **☁️ Cloud-Native**: Containerized (Docker) and orchestration-ready (Compose) for scalable deployment.
-
----
-
-## ⚡ Performance Constraints
-
-VoxSentinel is engineered for **hard real-time** requirements in enterprise security.
-
-| Metric | Measured Value | Target | Status |
-| :--- | :--- | :--- | :--- |
-| **Biometric Verification** | **12ms** / frame | < 30ms | 🟢 |
-| **End-to-End Audio Latency** | **45ms** (Glass-to-Glass) | < 50ms | 🟢 |
-| **LLM Time-to-First-Token** | **180ms** (Gemini Flash) | < 200ms | 🟢 |
-| **False Rejection Rate (FRR)** | **1.2%** | < 2.0% | 🟢 |
-| **UI Frame Rate** | **60 FPS** (Canvas API) | 60 FPS | 🟢 |
-| **CPU Inference** | **Real-time** (Int8 Quantization) | < 50% Load | 🟢 |
-
----
-
-## 🔁 System Data Flow
+## 🏛️ System Design
 
 ```mermaid
 graph LR
-    User([User Voice]) <==>|AudioWorklet| UI["Sentinel Client<br>(Frontend)"]
-    UI <==>|Secure WebSocket| API["Biometric Engine<br>(Backend)"]
-    API <==>|gRPC/REST| Cloud["Google Gemini<br>(LLM Cluster)"]
-
-    style UI fill:#6366f1,stroke:#fff,stroke-width:2px
-    style API fill:#10b981,stroke:#fff,stroke-width:2px
-    style Cloud fill:#f43f5e,stroke:#fff,stroke-width:2px
-    style User fill:#fff,stroke:#333,color:#000
+    User([User Voice]) <==>|Audio Stream| UI[Sentinel Interface]
+    UI <==>|Secure Link| API[Coaching Engine]
+    API -->|Biometric| ID[Identity Filter]
+    API -->|Selective| STT[Transcript Engine]
+    API <==>|Personalized| MEM[(Verified Memory)]
+    API <==>|Linguistic| AI[Cloud LLM]
+    
+    style UI fill:#6366f1,stroke:#fff,stroke-width:2px,color:#fff
+    style API fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff
+    style ID fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#fff
+    style MEM fill:#8b5cf6,stroke:#fff,stroke-width:2px,color:#fff
 ```
 
 ---
