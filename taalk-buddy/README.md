@@ -1,115 +1,75 @@
-# VoxSentinel | Frontend
-### Next-Gen Biometric Neural Interface
+# VoxSentinel | Frontend Terminal
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)
-![Latency](https://img.shields.io/badge/latency-%3C50ms-blueviolet)
-![React](https://img.shields.io/badge/react-19.2.0-61DAFB?logo=react)
-![TypeScript](https://img.shields.io/badge/typescript-5.9.3-3178C6?logo=typescript)
+A high-performance biometric neural interface designed for real-time audio streaming and visualization. This application acts as the "Edge Terminal" for the VoxSentinel system, processing raw audio streams and rendering live inference data with sub-frame precision.
 
-## ⚡ Executive Summary
+---
 
-**VoxSentinel** is an enterprise-grade biometric security and coaching interface designed for high-throughput, low-latency environments. Unlike standard data dashboards, this application functions as a **real-time neural terminal**, processing raw audio streams at the edge and visualizing complex inference data with sub-frame latency.
+## 🏗️ Architecture: The Edge Pipeline
 
-Built for scale and precision, it leverages **AudioWorklets** for non-blocking audio processing and **WebSockets** for full-duplex communication with the PyTorch inference engine.
-
-## 🏗️ System Architecture
-
-The frontend is architected as a high-performance event-driven system.
+The frontend is architected to handle full-duplex binary communication without blocking the main UI thread.
 
 ```mermaid
 graph TD
-    User[User Voice Input] -->|Raw Stream| AudioWorklet[Audio Worklet Node]
-    AudioWorklet -->|Float32Array| MainThread[Main Thread Bridge]
-    MainThread -->|Binary Blob| WebSocket[WebSocket Client]
+    User[Voice Input] -->|Raw Stream| AudioWorklet[Audio Worklet Processor]
+    AudioWorklet -->|PCM Data| MainThread[Main Thread Bridge]
+    MainThread -->|Binary WebSockets| Backend[FastAPI Neural Engine]
     
     subgraph "React Runtime"
-        WebSocket -->|JSON Events| StateManager[State Manager]
-        StateManager -->|Signal| Visualizer[Canvas Visualizer 60FPS]
-        StateManager -->|Text| ChatUI[Reactive Chat Interface]
+        Backend -->|JSON Status| StateManager[State Management]
+        StateManager -->|Signal| Canvas[Canvas Visualizer 60FPS]
+        StateManager -->|Text| ChatUI[Reactive Interface]
     end
-    
-    WebSocket -->|Inference Result| Visualizer
-```
-
-## 🧠 Engineering Deep Dive
-
-### 1. High-Performance Audio Processing
-Standard `ScriptProcessorNode` creates audio glitches due to main thread blocking. We implemented a custom **`AudioWorkletProcessor`** to handle raw PCM data processing off the main thread.
--   **Zero-Copy Transfer**: Audio buffers are transferred directly to the WebSocket worker without serialization overhead.
--   **Sample Rate Aliasing**: Automatic downsampling to 16kHz at the source to reduce network bandwidth by 65%.
-
-### 2. Real-Time Visualization Engine
-The biometric visualizers use `requestAnimationFrame` with **Canvas API** instead of DOM manipulation for buttery smooth 60fps rendering.
--   **Frequency Domain Analysis**: Real-time FFT (Fast Fourier Transform) computed client-side.
--   **Memory Management**: TypedArrays (`Float32Array`) used exclusively to prevent garbage collection pauses during recording.
-
-### 3. Resilience & State Management
--   **WebSocket Heartbeat**: Custom keep-alive protocol to maintain persistent connections through network jitter.
--   **Optimistic UI**: Interface reacts immediately to user input while verifying state asynchronously, creating a perceived zero-latency experience.
-
-## 🚀 Tech Stack & Decisions
-
-| Technology | Role | Justification |
-| :--- | :--- | :--- |
-| **React 19** | UI Library | Leverages Concurrent Mode for prioritization of high-frequency audio updates. |
-| **Vite** | Build Tool | Native ESM bundler provides <200ms HMR for rapid iteration. |
-| **TypeScript** | Language | Strict type safety ensures reliability in complex state machines. |
-| **Tailwind CSS 4** | Styling | Atomic CSS engine ensures JIT compilations and minimal bundle size (<10kb CSS). |
-| **Framer Motion** | Animation | Physics-based animations that don't block layout calculation. |
-
-## 🛠️ Setup & Deployment
-
-### Prerequisites
-*   Node.js v18+ (LTS recommended)
-*   NVIDIA CUDA Toolkit (for local GPU inference testing)
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/ibesuperv/VoxSentinel.git
-
-# Install with strict peer dependency resolution
-npm ci
-
-# Start Development Server (HMR Enabled)
-npm run dev
-```
-
-### Production Build
-
-```bash
-npm run build
-# Outputs optimized assets to /dist with cache-busting hashes
-```
-
-## 📈 Performance Metrics
-
-*   **First Contentful Paint (FCP)**: 0.8s
-*   **Time to Interactive (TTI)**: 1.1s
-*   **Audio Latency**: 45ms (End-to-End)
-*   **Bundle Size**: 128kb (Gzipped)
-
-## 📂 Directory Structure
-
-```bash
-src/
-├── components/       # UI Primitives & Complex Organisms
-│   ├── ui/           # Reusable atoms (Button, Card, Input)
-│   └── Visualizer.tsx # Canvas-based Audio Visualizer
-├── pages/            # Application Route Views
-│   ├── Assistant.tsx # AI Chat Interface
-│   ├── Coach.tsx     # Real-time Coaching Dashboard
-│   ├── Home.tsx      # Landing Page
-│   └── Register.tsx  # Biometric Enrollment Flow
-├── services/         # Business Logic Layer
-│   └── audioService.ts # AudioContext & Worklet Management
-├── App.tsx           # Route Definitions
-├── main.tsx          # Application Entry Point
-└── index.css         # Global Tailwind Directives
 ```
 
 ---
 
-*VoxSentinel is a demonstration of advanced frontend engineering, bridging the gap between web applications and real-time biometric systems.*
+## 🧠 Engineering Highlights
+
+### 1. Non-Blocking Audio Processing
+Standard JavaScript audio processing often blocks the main thread, causing UI stutters. We implemented a custom **`AudioWorkletProcessor`** to handle high-frequency sampling in a dedicated audio thread.
+- **Zero-Latency Buffering**: Raw Float32 audio data is captured and piped directly to the backend.
+- **Source-Side Downsampling**: Automatically converts audio to the 16kHz Mono format required by neural models, reducing network payload size.
+
+### 2. Canvas-Driven Visualization
+The biometric "Voice Shield" and frequency visualizers use the **Canvas API** and `requestAnimationFrame`. This avoids the overhead of the React DOM reconciliation loop, ensuring buttery-smooth 60FPS updates during live recording.
+
+### 3. Binary WebSocket Communication
+Uses raw binary frames for audio transmission to minimize serialization overhead (Base64), reducing total round-trip time and improving responsiveness in low-bandwidth environments.
+
+---
+
+---
+
+## 📊 Honest Performance Metrics
+
+| Constraint | Value | Engineering Rationale |
+| :--- | :--- | :--- |
+| **Edge Buffer Latency** | **32ms** | Physical capture time for 512 samples @ 16kHz. |
+| **Network Payload** | **-33%** | Binary frames avoid Base64 inflation. |
+| **UI Rendering** | **60 FPS** | Achieved via `requestAnimationFrame` and Canvas API. |
+| **Memory Footprint** | **Constant** | Circular `Float32Array` buffers prevent GC thrashing. |
+
+---
+
+## 🚀 Tech Stack
+- **Framework**: React 19 + TypeScript.
+- **Audio**: Web Audio API (AudioWorklet, AnalyserNode).
+- **Communication**: Full-Duplex WebSockets.
+- **Styling**: Tailwind CSS 4 + Framer Motion for physics-based UI transitions.
+
+---
+
+## 🛠️ Setup & Development
+
+### 1. Installation
+```bash
+npm install
+```
+
+### 2. Local Development
+```bash
+npm run dev
+```
+
+---
+*Optimized for low-latency human-computer interaction.*
