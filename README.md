@@ -73,26 +73,76 @@ VoxSentinel is built as a high-performance decoupled architecture. Explore the d
 *   **Key Tech**: Asynchronous Event Loop (`asyncio`), biometric verification, and personalized voice-aware memory.
 *   [**View Backend Architecture →**](./backend2/README.md)
 
+
 ---
 
-## 🏛️ System Design
+## 🏛️ System Architecture
+
+The system is built as a high-performance, decoupled pipeline that bridges edge audio processing with cloud-based neural inference.
 
 ```mermaid
 graph LR
-    User([User Voice]) <==>|Audio Stream| UI[Sentinel Interface]
-    UI <==>|Secure Link| API[Coaching Engine]
-    API -->|Biometric| ID[Identity Filter]
-    API -->|Selective| STT[Transcript Engine]
-    API <==>|Personalized| MEM[(Verified Memory)]
-    API <==>|Linguistic| AI[Cloud LLM]
-    
-    style UI fill:#6366f1,stroke:#fff,stroke-width:2px,color:#fff
-    style API fill:#10b981,stroke:#fff,stroke-width:2px,color:#fff
-    style ID fill:#f59e0b,stroke:#fff,stroke-width:2px,color:#fff
-    style MEM fill:#8b5cf6,stroke:#fff,stroke-width:2px,color:#fff
+    User([User Voice]) <==>|Raw PCM Stream| UI[Next.js Terminal]
+    UI <==>|Full-Duplex WS| BE[Neural Engine]
+    BE -->|Biometric Verification| ID[Voice Identity Filter]
+    BE -->|Adaptive Inference| STT[Diarized Transcription]
+    BE <==>|RAG Memory| DB[(ChromaDB Vector Store)]
+    BE <==>|Linguistic Support| LLM[Ollama / LLM Engine]
 ```
 
 ---
+
+## 🧠 Key Technical Capabilities
+
+### 1. Biometric Voice Shield
+- **Continuous Verification**: Uses **Picovoice Eagle** to analyze audio frames in real-time. The system only processes and remembers speech that matches the registered user's biometric profile.
+- **Privacy-First Design**: Guest voices are used for conversational context but are never stored in long-term memory or used for coaching.
+
+### 2. Speaker-Adaptive Pipeline
+- **Differentiated Inference**: Applies unique VAD (Voice Activity Detection) thresholds and inference parameters based on speaker identity.
+- **Hallucination Reduction**: Stricter confidence filters are applied to unverified signals to ensure the AI coach focuses only on high-fidelity user speech.
+
+### 3. Real-Time Behavioral Coaching
+- **Struggle Detection**: Monitors speech for hesitation patterns (extended pauses, filler word frequency).
+- **Conditional Assistance**: Generates single, confident sentence suggestions only when the system detects the user is struggling to find their words.
+
+### 4. Long-Term RAG Memory
+- **Personalized Context**: Leverages **ChromaDB** and **Sentence-Transformers** to store and retrieve user-specific facts from previous sessions.
+- **Dynamic Retrieval**: The AI coach adapts its personality and advice based on the user's historical conversational progress.
+
+---
+
+---
+
+## 📊 Technical Performance & Scaling
+
+These metrics are derived from the system's architectural constraints and model specifications:
+
+| Metric | Measured Value / Constraint | Technical Justification |
+| :--- | :--- | :--- |
+| **Audio Frame Latency** | **~32ms** | Derived from the 512-sample buffer at 16kHz. |
+| **Memory Complexity** | **$O(1)$** | Achieved via NumPy streaming buffers; memory does not scale with audio length. |
+| **Verification Grain** | **Single Frame** | Continuous biometric check performed by Picovoice Eagle on every audio packet. |
+| **STT Throughput** | **~4x Speedup** | Achieved via `CTranslate2` quantization vs. standard PyTorch inference. |
+| **WebSocket Overhead** | **Minimal** | Binary framing eliminates Base64 encoding latency (~33% reduction in payload size). |
+
+---
+
+
+
+## 🚀 Technical Stack
+- **Frontend**: React 19, TypeScript, AudioWorklet API, Tailwind CSS.
+- **Backend**: FastAPI, WebSockets, Python Asyncio.
+- **AI/ML**: Picovoice Eagle, Faster-Whisper, Ollama (Llama 3/Mistral).
+- **Vector DB**: ChromaDB with Sentence-Transformer embeddings.
+
+---
+
+## 🏁 How to Run
+Detailed setup instructions for the biometric enrollment flow and neural engine configuration can be found in the respective module directories.
+
+---
+*Developed as a deep-dive into Real-time Biometrics and Privacy-Preserving AI.*
 
 *Engineered by **Varun B**.*
 *📧 [Contact via Email](mailto:varub5725@gmail.com)*
