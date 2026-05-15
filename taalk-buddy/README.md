@@ -46,8 +46,8 @@ Uses raw binary frames for audio transmission to minimize serialization overhead
 | :--- | :--- | :--- |
 | **Edge Buffer Latency** | **32ms** | Physical capture time for 512 samples @ 16kHz. |
 | **Network Payload** | **-33%** | Binary frames avoid Base64 inflation. |
-| **UI Rendering** | **60 FPS** | Achieved via `requestAnimationFrame` and Canvas API. |
-| **Memory Footprint** | **Constant** | Circular `Float32Array` buffers prevent GC thrashing. |
+| **UI Rendering** | **60 FPS** | Live visualizer rendered via AudioWorklet without blocking the main thread. |
+| **Memory Footprint** | **Constant O(1)** | Circular `Float32Array` buffers prevent GC thrashing. |
 
 ---
 
